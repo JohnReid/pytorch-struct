@@ -148,12 +148,8 @@ class StdSemiring(_Base):
         return torch.sum(xs, dim=dim)
 
     @classmethod
-    def matmul(cls, a, b, dims=1):
-        """
-        Dot product along last dim.
-
-        (Faster than calling sum and times.)
-        """
+    def matmul(cls, a, b):
+        "Dot product along last dim"
 
         if has_genbmm and isinstance(a, genbmm.BandedMatrix):
             return b.multiply(a.transpose())
@@ -201,11 +197,7 @@ class MaxSemiring(_BaseLog):
 
 
 def KMaxSemiring(k):
-    """
-    Implements the k-max semiring (kmax, +, [-inf, -inf..], [0, -inf, ...]).
-
-    Gradients give k-argmax.
-    """
+    "Implements the k-max semiring (kmax, +, [-inf, -inf..], [0, -inf, ...])."
 
     class KMaxSemiring(_BaseLog):
         @staticmethod
@@ -277,11 +269,16 @@ class KLDivergenceSemiring(Semiring):
 
     Based on descriptions in:
 
-    * Parameter estimation for probabilistic finite-state transducers :cite:`eisner2002parameter`
-    * First-and second-order expectation semirings with applications to minimum-risk training on translation forests :cite:`li2009first`
+    * Parameter estimation for probabilistic finite-state
+      transducers :cite:`eisner2002parameter`
+    * First-and second-order expectation semirings with applications to
+      minimumrisk training on translation forests :cite:`li2009first`
     * Sample Selection for Statistical Grammar Induction :cite:`hwa2000samplesf`
+
     """
+
     zero = 0
+
     @staticmethod
     def size():
         return 3
@@ -307,7 +304,15 @@ class KLDivergenceSemiring(Semiring):
         log_sm_p = xs[0] - part_p.unsqueeze(d)
         log_sm_q = xs[1] - part_q.unsqueeze(d)
         sm_p = log_sm_p.exp()
-        return torch.stack((part_p, part_q, torch.sum(xs[2].mul(sm_p) - log_sm_q.mul(sm_p) + log_sm_p.mul(sm_p), dim=d)))
+        return torch.stack(
+            (
+                part_p,
+                part_q,
+                torch.sum(
+                    xs[2].mul(sm_p) - log_sm_q.mul(sm_p) + log_sm_p.mul(sm_p), dim=d
+                ),
+            )
+        )
 
     @staticmethod
     def mul(a, b):
@@ -337,6 +342,7 @@ class KLDivergenceSemiring(Semiring):
         xs[1].fill_(0)
         xs[2].fill_(0)
         return xs
+
 
 class CrossEntropySemiring(Semiring):
     """
@@ -378,7 +384,9 @@ class CrossEntropySemiring(Semiring):
         log_sm_p = xs[0] - part_p.unsqueeze(d)
         log_sm_q = xs[1] - part_q.unsqueeze(d)
         sm_p = log_sm_p.exp()
-        return torch.stack((part_p, part_q, torch.sum(xs[2].mul(sm_p) - log_sm_q.mul(sm_p), dim=d)))
+        return torch.stack(
+            (part_p, part_q, torch.sum(xs[2].mul(sm_p) - log_sm_q.mul(sm_p), dim=d))
+        )
 
     @staticmethod
     def mul(a, b):
@@ -408,9 +416,6 @@ class CrossEntropySemiring(Semiring):
         xs[1].fill_(0)
         xs[2].fill_(0)
         return xs
-
-
-
 
 
 class EntropySemiring(Semiring):
